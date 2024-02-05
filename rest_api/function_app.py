@@ -8,9 +8,12 @@ from datetime import datetime
 from io import StringIO
 from azure.storage.blob import BlobClient
 
+# TODO: add authentication to Azure function.
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
+# max rows per batch.
 max_rows = 1000
+# connection info.
 blob_container_url = os.environ["BlobContainerURL"]
 blob_sas_token = os.environ["BlobSASToken"]
 sql_conn_string = os.environ["SqlConnectionString"]
@@ -18,6 +21,7 @@ sql_conn_string = os.environ["SqlConnectionString"]
 @app.route(route="load_data")
 def load_data(req: func.HttpRequest) -> func.HttpResponse:
     try:
+        # read file streams and check row counts.
         depts_csv_file = req.files["departments_file"]
         depts_file_name = depts_csv_file.filename.replace(".csv", "") + "_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".csv"
         depts_file_stream = depts_csv_file.stream.read()
@@ -42,10 +46,12 @@ def load_data(req: func.HttpRequest) -> func.HttpResponse:
         if not(is_valid_file(empls_file_contents)):
             raise Exception(f"Row count for employees file is > than {max_rows}")
         
+        # upload files to Azure Blob Storage.
         upload_blob(depts_file_name, depts_file_stream)
         upload_blob(jobs_file_name, jobs_file_stream)
         upload_blob(empls_file_name, empls_file_stream)
 
+        # insert data into Azure SQL.
         sql_conn = pyodbc.connect(sql_conn_string)
         cursor = sql_conn.cursor()
 
