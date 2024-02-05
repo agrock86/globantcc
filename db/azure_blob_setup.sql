@@ -1,0 +1,9 @@
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = '98BK^cdTK$quuGcJ';
+CREATE DATABASE SCOPED CREDENTIAL BlobStorageImportCredential
+WITH IDENTITY = 'SHARED ACCESS SIGNATURE',
+SECRET = 'sp=racwdl&st=2024-02-04T13:28:35Z&se=2024-02-06T21:28:35Z&spr=https&sv=2022-11-02&sr=c&sig=n9DJv71GDELSqMX4%2FFnrCteRg4EDfFUnLKxpHtin%2FBE%3D';
+
+CREATE EXTERNAL DATA SOURCE BlobStorageImport
+WITH ( TYPE = BLOB_STORAGE,
+LOCATION = 'https://globantccstdevagrock86.blob.core.windows.net',
+CREDENTIAL= BlobStorageImportCredential);
